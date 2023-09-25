@@ -1,0 +1,10 @@
+,en
+DYNAMIC_SPRINT_TEXT,Pressing the SPRINT button Toggles it On/Off unless it is held down.
+TOGGLE_SPRINT_TEXT,Pressing the SPRINT button Toggles it On until you stop moving or press it again.
+HOLD_SPRINT_TEXT,SPRINT only as long as you hold down the SPRINT button.
+UI_DYNAMIC_SPRINT,Dynamic
+UI_TOGGLE_SPRINT,Toggle
+UI_HOLD_SPRINT,Hold
+UI_MOUSE_SENSITIVITY_TXT,Mouse Sensitivity
+UI_SPRINT_MODE_TXT,Sprint Mode
+UI_SPRINT_MODE_DEFAULT,Change the way the SPRINT button behaves

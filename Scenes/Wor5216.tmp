@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://db2h3t17k37pe"]
+[gd_scene load_steps=15 format=3 uid="uid://db2h3t17k37pe"]
 
 [ext_resource type="Script" path="res://Scripts/Player.gd" id="1_1d73w"]
 [ext_resource type="Material" uid="uid://b4s0xnt1f6lia" path="res://Materials/Green.tres" id="1_o5nrg"]
@@ -6,8 +6,6 @@
 [ext_resource type="Material" uid="uid://b122sws3pt7w7" path="res://Materials/Red.tres" id="4_nuwel"]
 [ext_resource type="Material" uid="uid://p2nkjd3ge3qm" path="res://Materials/Blue.tres" id="5_te4rd"]
 [ext_resource type="Script" path="res://interface/mouse_sensitivity_slider.gd" id="6_e3uym"]
-[ext_resource type="LabelSettings" uid="uid://chn5tbuebt4po" path="res://interface/sub_settings_style.tres" id="7_ukli0"]
-[ext_resource type="LabelSettings" uid="uid://kkicv3y74p3a" path="res://interface/settings_style.tres" id="8_rui4k"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_5lq0h"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -23,16 +21,6 @@ tonemap_mode = 2
 glow_enabled = true
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_xc2g5"]
-
-[sub_resource type="Gradient" id="Gradient_r4tnx"]
-offsets = PackedFloat32Array(0.7, 1)
-
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_714p4"]
-gradient = SubResource("Gradient_r4tnx")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gpsvd"]
-albedo_color = Color(1, 0, 1, 1)
-albedo_texture = SubResource("GradientTexture1D_714p4")
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wydro"]
 
@@ -58,15 +46,10 @@ func _input(event):
 [sub_resource type="GDScript" id="GDScript_kjov5"]
 script/source = "extends VBoxContainer
 
-const DYNAMIC_SPRINT = 0
-const TOGGLE_SPRINT = 1
-const HOLD_SPRINT = 2
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var value = %mouse_sensitivity.value
-	var sensLabel = $current_sens
-	sensLabel.text = str(value*100)
+	pass
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -76,39 +59,13 @@ func _process(delta):
 
 func _on_mouse_sensitivity_value_changed(value):
 	var sensLabel = $current_sens
+	var playersens = $root/World/Player
+	playersens.get(\"SENSITIVITY\") = value
 	sensLabel.text = str(value*100)
-
-
-func _on_sprint_mode_item_focused(index):
-	var sprintDescription = $sprint_mode_description
-	if index == DYNAMIC_SPRINT:
-		sprintDescription.text = \"DYNAMIC_SPRINT_TEXT\"
-	elif index == TOGGLE_SPRINT:
-		sprintDescription.text = \"TOGGLE_SPRINT_TEXT\"
-	elif index == HOLD_SPRINT:
-		sprintDescription.text = \"HOLD_SPRINT_TEXT\"
-	else:
-		sprintDescription.text = \"\"
-
-
-func _on_sprint_mode_item_selected(index):
-	var sprintDescription = $sprint_mode_description
-	if index == DYNAMIC_SPRINT:
-		sprintDescription.text = \"DYNAMIC_SPRINT_TEXT\"
-	elif index == TOGGLE_SPRINT:
-		sprintDescription.text = \"TOGGLE_SPRINT_TEXT\"
-	elif index == HOLD_SPRINT:
-		sprintDescription.text = \"HOLD_SPRINT_TEXT\"
-	else:
-		pass
 "
 
 [sub_resource type="LabelSettings" id="LabelSettings_pqssu"]
-font_size = 40
-outline_size = 5
-outline_color = Color(0, 0, 0, 0.545098)
-shadow_size = 5
-shadow_color = Color(0, 0, 0, 0.384314)
+font_size = 30
 
 [node name="World" type="Node3D"]
 
@@ -171,10 +128,9 @@ shadow_enabled = true
 [node name="Player" type="CharacterBody3D" parent="."]
 script = ExtResource("1_1d73w")
 
-[node name="Body" type="MeshInstance3D" parent="Player"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mesh = SubResource("CapsuleMesh_xc2g5")
-surface_material_override/0 = SubResource("StandardMaterial3D_gpsvd")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -184,11 +140,6 @@ shape = SubResource("CapsuleShape3D_wydro")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.67939, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Player/Head"]
-
-[node name="velocity_label" type="Label" parent="."]
-unique_name_in_owner = true
-offset_right = 40.0
-offset_bottom = 23.0
 
 [node name="PAUSE_CANVAS" type="CanvasLayer" parent="."]
 process_mode = 3
@@ -204,7 +155,6 @@ grow_vertical = 2
 script = SubResource("GDScript_xtiph")
 
 [node name="background_block" type="ColorRect" parent="PAUSE_CANVAS/PAUSE_MENU"]
-process_mode = 2
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -214,7 +164,6 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.388235)
 
 [node name="settings_menu" type="VBoxContainer" parent="PAUSE_CANVAS/PAUSE_MENU"]
-process_mode = 2
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -231,50 +180,22 @@ script = SubResource("GDScript_kjov5")
 
 [node name="mouse_sens_label" type="Label" parent="PAUSE_CANVAS/PAUSE_MENU/settings_menu"]
 layout_mode = 2
-text = "UI_MOUSE_SENSITIVITY_TXT"
+text = "Mouse Sensitvity"
 label_settings = SubResource("LabelSettings_pqssu")
 clip_text = true
 
 [node name="mouse_sensitivity" type="HSlider" parent="PAUSE_CANVAS/PAUSE_MENU/settings_menu"]
-unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "Adjusts the speed at which tthe camer moves when you move your mouse."
-min_value = 0.001
+min_value = 0.01
 max_value = 1.0
-step = 0.001
-value = 0.5
-tick_count = 30
-ticks_on_borders = true
+step = 0.01
+value = 0.01
 script = ExtResource("6_e3uym")
 
 [node name="current_sens" type="Label" parent="PAUSE_CANVAS/PAUSE_MENU/settings_menu"]
 layout_mode = 2
-text = "50"
-label_settings = ExtResource("7_ukli0")
-
-[node name="sprint_mode_label" type="Label" parent="PAUSE_CANVAS/PAUSE_MENU/settings_menu"]
-layout_mode = 2
-text = "UI_SPRINT_MODE_TXT"
-label_settings = ExtResource("8_rui4k")
-
-[node name="sprint_mode" type="OptionButton" parent="PAUSE_CANVAS/PAUSE_MENU/settings_menu"]
-layout_mode = 2
-keep_pressed_outside = true
-item_count = 3
-selected = 0
-popup/item_0/text = "UI_DYNAMIC_SPRINT"
-popup/item_0/id = 0
-popup/item_1/text = "UI_TOGGLE_SPRINT"
-popup/item_1/id = 1
-popup/item_2/text = "UI_HOLD_SPRINT"
-popup/item_2/id = 2
-
-[node name="sprint_mode_description" type="Label" parent="PAUSE_CANVAS/PAUSE_MENU/settings_menu"]
-layout_mode = 2
-text = "UI_SPRINT_MODE_DEFAULT"
-label_settings = ExtResource("7_ukli0")
+text = "0.001"
 
 [connection signal="value_changed" from="PAUSE_CANVAS/PAUSE_MENU/settings_menu/mouse_sensitivity" to="PAUSE_CANVAS/PAUSE_MENU/settings_menu" method="_on_mouse_sensitivity_value_changed" flags=18]
-[connection signal="item_focused" from="PAUSE_CANVAS/PAUSE_MENU/settings_menu/sprint_mode" to="PAUSE_CANVAS/PAUSE_MENU/settings_menu" method="_on_sprint_mode_item_focused" flags=18]
-[connection signal="item_selected" from="PAUSE_CANVAS/PAUSE_MENU/settings_menu/sprint_mode" to="PAUSE_CANVAS/PAUSE_MENU/settings_menu" method="_on_sprint_mode_item_selected"]

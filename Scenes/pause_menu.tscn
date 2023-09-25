@@ -1,0 +1,154 @@
+[gd_scene load_steps=7 format=3 uid="uid://riiv4hio7yfn"]
+
+[ext_resource type="LabelSettings" uid="uid://chn5tbuebt4po" path="res://interface/sub_settings_style.tres" id="2_8byh4"]
+[ext_resource type="Script" path="res://interface/mouse_sensitivity_slider.gd" id="2_fv1je"]
+[ext_resource type="LabelSettings" uid="uid://kkicv3y74p3a" path="res://interface/settings_style.tres" id="3_bso3k"]
+
+[sub_resource type="GDScript" id="GDScript_xtiph"]
+resource_name = "pause_menu"
+script/source = "extends Control
+
+func _ready():
+	visible = false
+
+func _input(event):
+	if event.is_action_pressed(\"pause\"):
+		var paused_state = not get_tree().paused
+		get_tree().paused = paused_state
+		visible = paused_state
+		if paused_state:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		else:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			
+"
+
+[sub_resource type="GDScript" id="GDScript_kjov5"]
+script/source = "extends VBoxContainer
+
+const DYNAMIC_SPRINT = 0
+const TOGGLE_SPRINT = 1
+const HOLD_SPRINT = 2
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	var value = %mouse_sensitivity.value
+	var sensLabel = $current_sens
+	sensLabel.text = str(value*100)
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta):
+	pass
+
+
+func _on_mouse_sensitivity_value_changed(value):
+	var sensLabel = $current_sens
+	sensLabel.text = str(value*100)
+
+
+func _on_sprint_mode_item_focused(index):
+	var sprintDescription = $sprint_mode_description
+	if index == DYNAMIC_SPRINT:
+		sprintDescription.text = \"DYNAMIC_SPRINT_TEXT\"
+	elif index == TOGGLE_SPRINT:
+		sprintDescription.text = \"TOGGLE_SPRINT_TEXT\"
+	elif index == HOLD_SPRINT:
+		sprintDescription.text = \"HOLD_SPRINT_TEXT\"
+	else:
+		pass
+"
+
+[sub_resource type="LabelSettings" id="LabelSettings_pqssu"]
+font_size = 40
+outline_size = 5
+outline_color = Color(0, 0, 0, 0.545098)
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 0.384314)
+
+[node name="PAUSE_CANVAS" type="CanvasLayer"]
+process_mode = 3
+layer = 128
+
+[node name="PAUSE_MENU" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_xtiph")
+
+[node name="background_block" type="ColorRect" parent="PAUSE_MENU"]
+process_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.388235)
+
+[node name="settings_menu" type="VBoxContainer" parent="PAUSE_MENU"]
+process_mode = 2
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -400.0
+offset_right = 400.0
+offset_bottom = 400.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_kjov5")
+
+[node name="mouse_sens_label" type="Label" parent="PAUSE_MENU/settings_menu"]
+layout_mode = 2
+text = "UI_MOUSE_SENSITIVITY_TXT"
+label_settings = SubResource("LabelSettings_pqssu")
+clip_text = true
+
+[node name="mouse_sensitivity" type="HSlider" parent="PAUSE_MENU/settings_menu"]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Adjusts the speed at which tthe camer moves when you move your mouse."
+min_value = 0.001
+max_value = 1.0
+step = 0.001
+value = 0.5
+tick_count = 30
+ticks_on_borders = true
+script = ExtResource("2_fv1je")
+
+[node name="current_sens" type="Label" parent="PAUSE_MENU/settings_menu"]
+layout_mode = 2
+text = "50"
+label_settings = ExtResource("2_8byh4")
+
+[node name="sprint_mode_label" type="Label" parent="PAUSE_MENU/settings_menu"]
+layout_mode = 2
+text = "UI_SPRINT_MODE_TXT"
+label_settings = ExtResource("3_bso3k")
+
+[node name="sprint_mode" type="OptionButton" parent="PAUSE_MENU/settings_menu"]
+layout_mode = 2
+keep_pressed_outside = true
+item_count = 3
+selected = 0
+popup/item_0/text = "UI_DYNAMIC_SPRINT"
+popup/item_0/id = 0
+popup/item_1/text = "UI_TOGGLE_SPRINT"
+popup/item_1/id = 1
+popup/item_2/text = "UI_HOLD_SPRINT"
+popup/item_2/id = 2
+
+[node name="sprint_mode_description" type="Label" parent="PAUSE_MENU/settings_menu"]
+layout_mode = 2
+text = "UI_SPRINT_MODE_DEFAULT"
+label_settings = ExtResource("2_8byh4")
+
+[connection signal="value_changed" from="PAUSE_MENU/settings_menu/mouse_sensitivity" to="PAUSE_MENU/settings_menu" method="_on_mouse_sensitivity_value_changed"]
+[connection signal="item_focused" from="PAUSE_MENU/settings_menu/sprint_mode" to="PAUSE_MENU/settings_menu" method="_on_sprint_mode_item_focused"]
