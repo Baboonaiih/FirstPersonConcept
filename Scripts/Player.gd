@@ -10,6 +10,10 @@ var SENSITIVITY = 0.001
 var is_sprinting = false
 var is_moving = false
 var sprint_hold = 0
+const DYNAMIC_SPRINT = 0
+const TOGGLE_SPRINT = 1
+const HOLD_SPRINT = 2
+
 #bob variables
 const BOB_FREQ = 2.4
 const BOB_AMP = 0.08
@@ -20,13 +24,14 @@ const BASE_FOV = 85
 const FOV_CHANGE = 1.5
 
 # Get the gravity from the project settings to be synced with RigidBody nodes.
-# Earth Gravity is about 9.8m/s^2
-var gravity = 10
+# Earth Gravity is about 9.8m/s^2 but it feels floaty in Godot
+var gravity = 12
 
 @onready var head = $Head
 @onready var camera = $Head/Camera3D
 @onready var body = $Body
 @onready var mouse_sens = %mouse_sensitivity
+@onready var sprint_mode = %sprint_mode
 
 #helper variables
 var col_angle = 0
@@ -60,15 +65,17 @@ func _physics_process(delta):
 	
 	if Input.is_action_pressed("sprint") and is_on_floor():
 		sprint_hold += delta
+		if sprint_mode.get_selected_id() == HOLD_SPRINT:
+			sprint_hold = HOLD_TIME + delta
 		if sprint_hold > HOLD_TIME:
 			sprint_hold = HOLD_TIME + delta
 	
 	if Input.is_action_just_released("sprint") and is_on_floor():
-		if sprint_hold > HOLD_TIME:
+		if sprint_hold > HOLD_TIME and sprint_mode.get_selected_id() != TOGGLE_SPRINT:
 			is_sprinting = false
 		sprint_hold = 0
 	
-	if is_sprinting and is_moving:
+	if is_sprinting and (is_moving or sprint_mode.get_selected_id() == TOGGLE_SPRINT):
 		speed = SPRINT_SPEED
 	else:
 		speed = WALK_SPEED
@@ -89,10 +96,15 @@ func _physics_process(delta):
 		velocity.x = lerp(velocity.x, direction.x * speed, delta * 4.0)
 		velocity.z = lerp(velocity.z, direction.z * speed, delta * 4.0)
 	
+	#detect if moving or if should force stop sprinting
 	if (abs(velocity.x) < 0.07 and abs(velocity.z) < 0.07) or (
 		is_on_wall() and is_on_floor()):
 		is_moving = false
-		is_sprinting = false
+		if sprint_mode.get_selected_id() != TOGGLE_SPRINT:
+			is_sprinting = false
+	if (abs(velocity.x) < 0.001 and abs(velocity.z) < 0.001):
+		velocity.x = 0
+		velocity.z = 0
 	
 	
 	

@@ -58,15 +58,21 @@ func _input(event):
 [sub_resource type="GDScript" id="GDScript_kjov5"]
 script/source = "extends VBoxContainer
 
-const DYNAMIC_SPRINT = 0
-const TOGGLE_SPRINT = 1
-const HOLD_SPRINT = 2
+const DYNAMIC_SPRINT = \"DYNAMIC_SPRINT_TEXT\"
+const TOGGLE_SPRINT = \"TOGGLE_SPRINT_TEXT\"
+const HOLD_SPRINT = \"HOLD_SPRINT_TEXT\"
+const SPRINT_OPTIONS = [DYNAMIC_SPRINT, TOGGLE_SPRINT, HOLD_SPRINT]
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	var value = %mouse_sensitivity.value
 	var sensLabel = $current_sens
 	sensLabel.text = str(value*100)
+	var sprintDescription = $sprint_mode_description
+	if SPRINT_OPTIONS[%sprint_mode.get_selected_id()]:
+		sprintDescription.text = SPRINT_OPTIONS[%sprint_mode.get_selected_id()]
+	else:
+		sprintDescription.text = \"UI_SPRINT_MODE_DEFAULT\"
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -78,29 +84,12 @@ func _on_mouse_sensitivity_value_changed(value):
 	var sensLabel = $current_sens
 	sensLabel.text = str(value*100)
 
-
-func _on_sprint_mode_item_focused(index):
-	var sprintDescription = $sprint_mode_description
-	if index == DYNAMIC_SPRINT:
-		sprintDescription.text = \"DYNAMIC_SPRINT_TEXT\"
-	elif index == TOGGLE_SPRINT:
-		sprintDescription.text = \"TOGGLE_SPRINT_TEXT\"
-	elif index == HOLD_SPRINT:
-		sprintDescription.text = \"HOLD_SPRINT_TEXT\"
-	else:
-		sprintDescription.text = \"\"
-
-
 func _on_sprint_mode_item_selected(index):
 	var sprintDescription = $sprint_mode_description
-	if index == DYNAMIC_SPRINT:
-		sprintDescription.text = \"DYNAMIC_SPRINT_TEXT\"
-	elif index == TOGGLE_SPRINT:
-		sprintDescription.text = \"TOGGLE_SPRINT_TEXT\"
-	elif index == HOLD_SPRINT:
-		sprintDescription.text = \"HOLD_SPRINT_TEXT\"
+	if SPRINT_OPTIONS[index]:
+		sprintDescription.text = SPRINT_OPTIONS[index]
 	else:
-		pass
+		sprintDescription.text = \"UI_SPRINT_MODE_DEFAULT\"
 "
 
 [sub_resource type="LabelSettings" id="LabelSettings_pqssu"]
@@ -114,49 +103,61 @@ shadow_color = Color(0, 0, 0, 0.384314)
 
 [node name="Map" type="Node3D" parent="."]
 
-[node name="CSGBox3D2" type="CSGBox3D" parent="Map"]
+[node name="Wall_3D2" type="CSGBox3D" parent="Map"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -29.5653)
 material_override = ExtResource("3_irgfk")
 use_collision = true
 size = Vector3(52.4636, 5.83948, 1)
 
-[node name="CSGBox3D3" type="CSGBox3D" parent="Map"]
+[node name="Wall_3D3" type="CSGBox3D" parent="Map"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 29.3824)
 use_collision = true
 size = Vector3(52.4636, 5.83948, 1)
 material = ExtResource("3_irgfk")
 
-[node name="CSGBox3D4" type="CSGBox3D" parent="Map"]
+[node name="Wall_3D4" type="CSGBox3D" parent="Map"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -26, 0, 0.382374)
 material_override = ExtResource("3_irgfk")
 use_collision = true
 size = Vector3(60, 5.83948, 1)
 
-[node name="CSGBox3D5" type="CSGBox3D" parent="Map"]
+[node name="Wall_3D5" type="CSGBox3D" parent="Map"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 26, 0, 0.382374)
 material_override = ExtResource("3_irgfk")
 use_collision = true
 size = Vector3(60, 5.83948, 1)
 
-[node name="CSGBox3D6" type="CSGBox3D" parent="Map"]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 12, -2, 0.382374)
+[node name="CSGBox3D9" type="CSGBox3D" parent="Map"]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 12.0089, -1.75813, -4.25457)
 material_override = ExtResource("4_nuwel")
 use_collision = true
 size = Vector3(4, 5.83948, 4)
 
+[node name="CSGBox3D6" type="CSGBox3D" parent="Map"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 12, -2.2637, -1.67649)
+material_override = ExtResource("4_nuwel")
+use_collision = true
+size = Vector3(4, 5.83948, 4)
+
+[node name="CSGBox3D10" type="CSGBox3D" parent="Map"]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 15.9059, -0.170859, -9.34985)
+material_override = ExtResource("5_te4rd")
+use_collision = true
+size = Vector3(4, 5.83948, 9.77442)
+
 [node name="CSGBox3D7" type="CSGBox3D" parent="Map"]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 12, 0, -5.61763)
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 12, -0.967948, -6.49431)
 material_override = ExtResource("5_te4rd")
 use_collision = true
 size = Vector3(4, 5.83948, 4)
 
 [node name="CSGBox3D8" type="CSGBox3D" parent="Map"]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 12, 0, -12.6176)
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 11.8835, -0.42779, -10.2338)
 material_override = ExtResource("4_nuwel")
 use_collision = true
 size = Vector3(4, 8, 4)
 
-[node name="CSGBox3D" type="CSGBox3D" parent="Map"]
+[node name="Floor_Block" type="CSGBox3D" parent="Map"]
 material_override = ExtResource("1_o5nrg")
 use_collision = true
 size = Vector3(52.2363, 0.002, 59.575)
@@ -243,14 +244,14 @@ tooltip_text = "Adjusts the speed at which tthe camer moves when you move your m
 min_value = 0.001
 max_value = 1.0
 step = 0.001
-value = 0.5
+value = 0.01
 tick_count = 30
 ticks_on_borders = true
 script = ExtResource("6_e3uym")
 
 [node name="current_sens" type="Label" parent="PAUSE_CANVAS/PAUSE_MENU/settings_menu"]
 layout_mode = 2
-text = "50"
+text = "10"
 label_settings = ExtResource("7_ukli0")
 
 [node name="sprint_mode_label" type="Label" parent="PAUSE_CANVAS/PAUSE_MENU/settings_menu"]
@@ -259,10 +260,13 @@ text = "UI_SPRINT_MODE_TXT"
 label_settings = ExtResource("8_rui4k")
 
 [node name="sprint_mode" type="OptionButton" parent="PAUSE_CANVAS/PAUSE_MENU/settings_menu"]
+unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "UI_SPRINT_MODE_DEFAULT"
 keep_pressed_outside = true
 item_count = 3
 selected = 0
+allow_reselect = true
 popup/item_0/text = "UI_DYNAMIC_SPRINT"
 popup/item_0/id = 0
 popup/item_1/text = "UI_TOGGLE_SPRINT"
