@@ -1,6 +1,4 @@
-res://Translations/translation_keys.en.translation
-res://Scenes/pause_menu.tscn
-res://interface/settings_style.tres
 res://Scenes/World.tscn
-res://interface/sub_settings_style.tres
+res://interface/settings_style.tres
 res://Scripts/Player.gd
+res://Player_Assets/stylized_character.tscn

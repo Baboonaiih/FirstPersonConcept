@@ -1,14 +1,15 @@
 extends CharacterBody3D
 
-
-const WALK_SPEED = 5.0
-const SPRINT_SPEED = 8.0
-const JUMP_VELOCITY = 1
+const VELOCITY_SCALAR = 10
+const WALK_SPEED = 5.0 * VELOCITY_SCALAR
+const SPRINT_SPEED = 8.0 * VELOCITY_SCALAR
+const JUMP_VELOCITY = 1 * VELOCITY_SCALAR
 const HOLD_TIME = 1.50
 var speed = WALK_SPEED
 var SENSITIVITY = 0.001
 var is_sprinting = false
 var is_moving = false
+var is_falling = false
 var sprint_hold = 0
 const DYNAMIC_SPRINT = 0
 const TOGGLE_SPRINT = 1
@@ -25,11 +26,12 @@ const FOV_CHANGE = 1.5
 
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 # Earth Gravity is about 9.8m/s^2 but it feels floaty in Godot
-var gravity = 12
+var gravity = 12 * VELOCITY_SCALAR
 
 @onready var head = $Head
 @onready var camera = $Head/Camera3D
-@onready var body = $Body
+@onready var body = %Player_Animations
+@onready var body_model = $Head/Player_Model
 @onready var mouse_sens = %mouse_sensitivity
 @onready var sprint_mode = %sprint_mode
 
@@ -46,18 +48,23 @@ func _unhandled_input(event):
 		SENSITIVITY = mouse_sens.value
 		head.rotate_y(-event.relative.x * SENSITIVITY)
 		camera.rotate_x(-event.relative.y * SENSITIVITY)
-		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-85), deg_to_rad(60))
-		body.rotate_y(-event.relative.x * SENSITIVITY)
+		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-60), deg_to_rad(60))
 
 
 func _physics_process(delta):
 	# Add the gravity.
 	if not is_on_floor():
+		is_moving = true
 		velocity.y -= gravity * delta
+		if velocity.y < 0:
+			body.play("Falling", 1.0)
+			is_falling = true
 
 	# Handle Jump.
 	if Input.is_action_just_pressed("jump") and is_on_floor():
+		is_moving = true
 		velocity.y += JUMP_VELOCITY + (speed - 2)
+		body.play("Jump", 0, 2.0)
 	
 	# Handle Sprint.
 	if Input.is_action_just_pressed("sprint") and is_on_floor():
@@ -84,6 +91,7 @@ func _physics_process(delta):
 	var input_dir = Input.get_vector("left", "right", "up", "down")
 	var direction = (head.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if is_on_floor():
+		is_falling = false
 		if direction:
 			is_moving = true
 			velocity.x = direction.x * speed
@@ -106,16 +114,30 @@ func _physics_process(delta):
 		velocity.x = 0
 		velocity.z = 0
 	
-	
-	
 	# Head bob
-	t_bob += delta * velocity.length() * float(is_on_floor()) * float(is_moving)
+	t_bob += delta * velocity.length()/VELOCITY_SCALAR * float(is_on_floor()) * float(is_moving)
 	camera.transform.origin = _headbob(t_bob)
 	
 	# FOV
-	var velocity_clamped = clamp(velocity.length(), 0.5, SPRINT_SPEED * 2)
+	var velocity_clamped = clamp(velocity.length(), 0.5, SPRINT_SPEED/VELOCITY_SCALAR * 2)
 	var target_fov = BASE_FOV + FOV_CHANGE * velocity_clamped * float(is_moving)
 	camera.fov = lerp(camera.fov, target_fov, delta * 8.0)
+	
+	#animation
+	if Input.is_action_pressed("up"):
+		if is_moving and not is_falling:
+			if is_sprinting:
+				body.play("Run")
+			else:
+				body.play("Walk")
+	elif Input.is_action_pressed("down"):
+		if is_moving and not is_falling:
+			if is_sprinting:
+				body.play_backwards("Run")
+			else:
+				body.play_backwards("Walk")
+	elif not is_falling:
+		body.play("Iddle", 1.0)
 	
 	move_and_slide()
 	
@@ -125,7 +147,7 @@ func _physics_process(delta):
 	
 	# debugging stats
 	%velocity_label.text = str(
-		is_sprinting, " is_sprinting, ",
+		body.is_playing(), " is_playing, ",
 		sprint_hold, "hold, ",
 		velocity.x, "x, ",
 		velocity.y, "y, ",

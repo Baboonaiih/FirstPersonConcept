@@ -16,8 +16,8 @@ run/main_scene="res://Scenes/World.tscn"
 config/features=PackedStringArray("4.1", "Forward Plus")
 run/max_fps=240
 boot_splash/bg_color=Color(1, 1, 1, 1)
-boot_splash/image="res://General_Assets/baboonaiih-splash.png"
-config/icon="res://icon.svg"
+boot_splash/image="res://General_Assets/baboonaiih-splash-2.png"
+config/icon="res://General_Assets/baboonaiih-splash.png"
 boot_splash/minimum_display_time=1500
 
 [display]
@@ -72,6 +72,7 @@ locale/translations=PackedStringArray("res://Translations/translation_keys.en.tr
 
 common/physics_ticks_per_second=144
 3d/default_gravity=12.0
+3d/default_linear_damp=0.2
 
 [rendering]
 
