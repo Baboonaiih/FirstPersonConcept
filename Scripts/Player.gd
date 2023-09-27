@@ -11,6 +11,7 @@ var is_sprinting = false
 var is_moving = false
 var is_falling = false
 var sprint_hold = 0
+var is_grappling = false
 const DYNAMIC_SPRINT = 0
 const TOGGLE_SPRINT = 1
 const HOLD_SPRINT = 2
@@ -34,6 +35,9 @@ var gravity = 12 * VELOCITY_SCALAR
 @onready var body_model = $Head/Player_Model
 @onready var mouse_sens = %mouse_sensitivity
 @onready var sprint_mode = %sprint_mode
+@onready var grapple = $Head/Grapple_Detector
+@onready var midgrapple = $Head/Grapple_Detector_Mid
+@onready var botgrapple = $Head/Grapple_Detector_Bottom
 
 #helper variables
 var col_angle = 0
@@ -57,14 +61,23 @@ func _physics_process(delta):
 		is_moving = true
 		velocity.y -= gravity * delta
 		if velocity.y < 0:
-			body.play("Falling", 1.0)
+			body.play("Falling", 0.2)
 			is_falling = true
+			is_grappling = false
 
-	# Handle Jump.
+	# Handle Jump and grapple.
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		is_moving = true
+		body.play("Jump", 0, 0.5)
 		velocity.y += JUMP_VELOCITY + (speed - 2)
-		body.play("Jump", 0, 2.0)
+	elif Input.is_action_just_pressed("jump") and not is_on_floor():
+		if midgrapple.is_colliding() and not grapple.is_colliding() and not is_grappling:
+				velocity.y = JUMP_VELOCITY * 10
+				is_grappling = true
+				is_falling = false
+	if not botgrapple.is_colliding() and not midgrapple.is_colliding() and is_grappling and not is_falling:
+		velocity.y = 1
+		is_grappling = false
 	
 	# Handle Sprint.
 	if Input.is_action_just_pressed("sprint") and is_on_floor():
@@ -119,25 +132,24 @@ func _physics_process(delta):
 	camera.transform.origin = _headbob(t_bob)
 	
 	# FOV
-	var velocity_clamped = clamp(velocity.length(), 0.5, SPRINT_SPEED/VELOCITY_SCALAR * 2)
+	var velocity_clamped = clamp(velocity.length()/VELOCITY_SCALAR, 0.5, SPRINT_SPEED/VELOCITY_SCALAR * 2)
 	var target_fov = BASE_FOV + FOV_CHANGE * velocity_clamped * float(is_moving)
 	camera.fov = lerp(camera.fov, target_fov, delta * 8.0)
 	
 	#animation
-	if Input.is_action_pressed("up"):
-		if is_moving and not is_falling:
+	if is_moving and is_on_floor():
+		if Input.is_action_pressed("up"):
 			if is_sprinting:
 				body.play("Run")
 			else:
 				body.play("Walk")
-	elif Input.is_action_pressed("down"):
-		if is_moving and not is_falling:
+		elif Input.is_action_pressed("down"):
 			if is_sprinting:
 				body.play_backwards("Run")
 			else:
 				body.play_backwards("Walk")
-	elif not is_falling:
-		body.play("Iddle", 1.0)
+	else:
+		body.play("Iddle", 0.2)
 	
 	move_and_slide()
 	
@@ -147,14 +159,14 @@ func _physics_process(delta):
 	
 	# debugging stats
 	%velocity_label.text = str(
-		body.is_playing(), " is_playing, ",
-		sprint_hold, "hold, ",
-		velocity.x, "x, ",
-		velocity.y, "y, ",
-		velocity.z, "z, ",
+		is_on_floor(), " is_on_floor, ",
+		sprint_hold, " hold, ",
+		#velocity.x, "x, ",
+		#velocity.y, "y, ",
+		#velocity.z, "z, ",
 		camera.fov, "fov, ",
-		get_position_delta(), "posΔ, ",
-		col_angle, "col-angle")
+		#get_position_delta(), "posΔ, ",
+		is_grappling, " grappling")
 
 func _headbob(time) -> Vector3:
 	var pos = Vector3.ZERO

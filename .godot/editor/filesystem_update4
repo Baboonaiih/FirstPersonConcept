@@ -1,4 +1,3 @@
 res://Scenes/World.tscn
 res://interface/settings_style.tres
 res://Scripts/Player.gd
-res://Player_Assets/stylized_character.tscn
