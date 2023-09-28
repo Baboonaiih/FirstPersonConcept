@@ -1,3 +1,6 @@
 res://Scenes/World.tscn
+res://Materials/Pink.tres
+res://Player_Assets/void_skin.tres
 res://interface/settings_style.tres
 res://Scripts/Player.gd
+res://Scenes/fantasy_landscape_3/scene.tscn

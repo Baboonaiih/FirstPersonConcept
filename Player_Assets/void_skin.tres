@@ -7,3 +7,5 @@ roughness = 0.74
 emission = Color(1, 1, 1, 1)
 emission_energy_multiplier = 3.55
 emission_operator = 1
+subsurf_scatter_strength = 0.29
+subsurf_scatter_skin_mode = true
