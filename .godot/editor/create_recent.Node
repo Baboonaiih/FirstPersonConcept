@@ -1,9 +1,14 @@
-RayCast3D
 Label
+CSGBox3D
+CSGMesh3D
+Interactive
+Node3D
+RayCast3D
+RichTextLabel
+CanvasLayer
 OptionButton
 HSlider
 ColorRect
 CanvasModulate
-CanvasLayer
 VBoxContainer
 Control

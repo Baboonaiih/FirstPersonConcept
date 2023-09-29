@@ -38,6 +38,8 @@ var gravity = 12 * VELOCITY_SCALAR
 # settings UI objects, keep in mind
 @onready var mouse_sens = %mouse_sensitivity
 @onready var sprint_mode = %sprint_mode
+@onready var interact_txt = %interact_message
+@onready var interact = %interact_detector
 
 # grapple rays
 @onready var grapple = $Head/Grapple_Detector
@@ -62,6 +64,7 @@ func _ready():
 	grapple.add_exception(playerbodynode)
 	midgrapple.add_exception(playerbodynode)
 	botgrapple.add_exception(playerbodynode)
+	interact.add_exception(playerbodynode)
 
 func _unhandled_input(event):
 	if event is InputEventMouseMotion:
@@ -69,10 +72,25 @@ func _unhandled_input(event):
 		head.rotate_y(-event.relative.x * SENSITIVITY)
 		camera.rotate_x(-event.relative.y * SENSITIVITY)
 		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-60), deg_to_rad(60))
+		
+func check_interactive():
+	var detected = interact.get_collider()
+	if detected is Interactive:
+		interact_txt.text = detected.get_prompt()
+		interact_txt.visible = true
+		if Input.is_action_just_pressed(detected.action):
+			detected.interact(self)
+	elif check_grapple():
+		interact_txt.text = "Press Space to Climb"
+		interact_txt.visible = true
+	else:
+		interact_txt.visible = false
 
 # this checks if it is possible to grapple and returns true/false while also starting to grapple
+func check_grapple():
+	return midgrapple.is_colliding() and not grapple.is_colliding() and not is_grappling
 func start_grapple():
-	if midgrapple.is_colliding() and not grapple.is_colliding() and not is_grappling:
+	if check_grapple():
 		velocity.y = JUMP_VELOCITY * 10
 		is_grappling = true
 		is_falling = false
@@ -80,28 +98,36 @@ func start_grapple():
 		return true
 	else:
 		return false
+
+
 		
 func do_gravity(delta):
 #	var gravity_resistance = Vector3.UP if is_jumping or is_falling or not is_on_floor() else get_floor_normal()
 #	var n_gravity = gravity_resistance * gravity
 #	velocity -= n_gravity * delta
 	velocity.y -= gravity * delta
-	if abs(velocity.y) < 0.1:
+	if abs(velocity.y) < 0.5:
 		velocity.y = 0.0
-		is_falling = false
-
+	# tell the velocity to chill out if it's negligible amount
+	if (abs(velocity.x) < 0.001 and abs(velocity.z) < 0.001):
+		velocity.x = 0.0
+		velocity.z = 0.0
+		
 func _physics_process(delta):
-	# do the stuff
-	do_gravity(delta)
-	move_and_slide()
+	
+	# Get the input direction and handle the movement/deceleration.
+	var input_dir = Input.get_vector("left", "right", "up", "down")
+	var direction = (head.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
 	if not is_on_floor():
 		is_moving = true
-		if velocity.y < 0:
+		if velocity.y < (-0.5 * VELOCITY_SCALAR):
 			body.play("Falling", 0.2)
 			is_falling = true
 			is_jumping = false
 			is_grappling = false
+		else:
+			is_falling = false
 
 	# Handle Jump and grapple.
 	if Input.is_action_just_pressed("jump"):
@@ -122,29 +148,25 @@ func _physics_process(delta):
 		is_grappling = false
 	
 	# Handle Sprint.
-	if Input.is_action_just_pressed("sprint") and is_on_floor():
-		is_sprinting = not is_sprinting
-	
-	if Input.is_action_pressed("sprint") and is_on_floor():
-		sprint_hold += delta
-		if sprint_mode.get_selected_id() == HOLD_SPRINT:
-			sprint_hold = HOLD_TIME + delta
-		if sprint_hold > HOLD_TIME:
-			sprint_hold = HOLD_TIME + delta
-	
-	if Input.is_action_just_released("sprint") and is_on_floor():
-		if sprint_hold > HOLD_TIME and sprint_mode.get_selected_id() != TOGGLE_SPRINT:
-			is_sprinting = false
-		sprint_hold = 0
+	if is_on_floor():
+		if Input.is_action_just_pressed("sprint"):
+			is_sprinting = not is_sprinting
+		if Input.is_action_pressed("sprint"):
+			sprint_hold += delta
+			if sprint_mode.get_selected_id() == HOLD_SPRINT:
+				sprint_hold = HOLD_TIME + delta
+			if sprint_hold > HOLD_TIME:
+				sprint_hold = HOLD_TIME + delta
+		if Input.is_action_just_released("sprint"):
+			if sprint_hold > HOLD_TIME and sprint_mode.get_selected_id() != TOGGLE_SPRINT:
+				is_sprinting = false
+			sprint_hold = 0
 	
 	if is_sprinting and (is_moving or sprint_mode.get_selected_id() == TOGGLE_SPRINT):
 		speed = SPRINT_SPEED
 	else:
 		speed = WALK_SPEED
-
-	# Get the input direction and handle the movement/deceleration.
-	var input_dir = Input.get_vector("left", "right", "up", "down")
-	var direction = (head.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	
 	if is_on_floor():
 		is_falling = false
 		if direction:
@@ -154,9 +176,8 @@ func _physics_process(delta):
 		else:
 #			velocity.x = lerp(velocity.x, direction.x * speed, delta * 7.0)
 #			velocity.z = lerp(velocity.z, direction.z * speed, delta * 7.0)
-			velocity.x = lerp(velocity.x, direction.x * speed/AIR_RESISTANCE, delta * 4.0)
-			velocity.z = lerp(velocity.z, direction.z * speed/AIR_RESISTANCE, delta * 4.0)
-		
+			velocity.x = lerp(velocity.x, direction.x * speed/AIR_RESISTANCE, delta * 7.0)
+			velocity.z = lerp(velocity.z, direction.z * speed/AIR_RESISTANCE, delta * 7.0)
 	else:
 		velocity.x = lerp(velocity.x, direction.x * speed/AIR_RESISTANCE, delta * 4.0)
 		velocity.z = lerp(velocity.z, direction.z * speed/AIR_RESISTANCE, delta * 4.0)
@@ -167,10 +188,6 @@ func _physics_process(delta):
 		is_moving = false
 		if sprint_mode.get_selected_id() != TOGGLE_SPRINT:
 			is_sprinting = false
-	# tell the velocity to chill out if it's negligible amount
-	if (abs(velocity.x) < 0.001 and abs(velocity.z) < 0.001):
-		velocity.x = 0
-		velocity.z = 0
 	
 	# Head bob
 	t_bob += delta * velocity.length()/VELOCITY_SCALAR * float(is_on_floor()) * float(is_moving)
@@ -178,12 +195,12 @@ func _physics_process(delta):
 	
 	# FOV
 	var velocity_clamped = clamp(sqrt(velocity.length()/VELOCITY_SCALAR), 0.0, 3.0)
-	var target_fov = BASE_FOV + (FOV_CHANGE ** velocity_clamped) * float(is_moving)
+	var target_fov = BASE_FOV + (FOV_CHANGE ** velocity_clamped)
 	camera.fov = lerp(camera.fov, target_fov, delta * VELOCITY_SCALAR)
 	
 	#animation
-	if is_moving and is_on_floor() and not is_jumping:
-		if Input.is_action_pressed("up"):
+	if is_moving and not is_jumping and not is_falling:
+		if Input.is_action_pressed("up") or Input.is_action_pressed("left") or Input.is_action_pressed("right"):
 			if is_sprinting:
 				body.play("Run")
 			else:
@@ -195,8 +212,15 @@ func _physics_process(delta):
 				body.play_backwards("Walk")
 		elif not is_grappling:
 			body.play("Iddle", 0.5)
-	elif not is_grappling and not is_jumping:
+	elif not is_grappling and not is_jumping and not is_falling:
 		body.play("Iddle", 0.2)	
+	
+	# Final Functions
+	check_interactive()
+	do_gravity(delta)
+	move_and_slide()
+	
+	# DEBUG STUFF
 	
 	if get_last_slide_collision():
 		col_angle = get_last_slide_collision().get_angle()
@@ -205,9 +229,9 @@ func _physics_process(delta):
 	%velocity_label.text = str(
 		is_on_floor(), " is_on_floor, ",
 		sprint_hold, " hold, ",
-		#velocity.x, "x, ",
+		direction.x, "x, ",
 		#velocity.y, "y, ",
-		#velocity.z, "z, ",
+		direction.z, "z, ",
 		camera.fov, "fov, ",
 		#get_position_delta(), "posΔ, ",
 		is_grappling, " grappling")
