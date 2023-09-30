@@ -2,8 +2,9 @@ res://Scenes/World.tscn
 res://Materials/Pink.tres
 res://Player_Assets/void_skin.tres
 res://interface/settings_style.tres
-res://Scripts/Player.gd
-res://Scenes/fantasy_landscape_3/scene.tscn
-res://INTERACTIVE_OBJECT.gd
 res://Scripts/interactive_object.tscn
+res://General_Assets/Objects/Door/front_door.tscn
+res://General_Assets/Objects/Door/door_anims.res
+res://General_Assets/Objects/Door/door.gd
+res://General_Assets/Objects/Door/wood_door.tscn
 res://Scripts/INTERACTIVE_OBJECT.gd

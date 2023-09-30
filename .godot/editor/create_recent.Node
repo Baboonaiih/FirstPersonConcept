@@ -1,5 +1,8 @@
-Label
 CSGBox3D
+CollisionShape3D
+Area3D
+AnimationTree
+Label
 CSGMesh3D
 Interactive
 Node3D

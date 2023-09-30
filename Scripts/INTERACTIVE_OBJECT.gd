@@ -6,6 +6,11 @@ signal interacted(who)
 @export var message = "Interact"
 @export var action = "interact"
 
+func get_message():
+	return message
+func set_message(text):
+	message = text
+
 func get_prompt():
 	var key_name = ""
 	for actions in InputMap.action_get_events(action):
